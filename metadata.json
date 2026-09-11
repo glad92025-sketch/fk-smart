@@ -1,0 +1,6 @@
+{
+  "name": "FANGKHAM SMART GOVERNMENT - ระบบบริหารงานราชการ อบต. ครบวงจร",
+  "description": "ระบบบริหารงานและติดตามภารกิจองค์การบริหารส่วนตำบลแบบครบวงจร ศูนย์กลางการทำงานบุคลากรทุกกอง พร้อมระบบมอบหมาย ติดตาม รายงาน และคลังเอกสารราชการ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
