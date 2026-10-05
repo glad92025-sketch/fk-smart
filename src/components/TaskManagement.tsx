@@ -14,7 +14,8 @@ import {
   User,
   ArrowUpDown,
   Download,
-  Calendar
+  Calendar,
+  Database
 } from 'lucide-react';
 import { 
   Task, 
@@ -43,6 +44,7 @@ interface TaskManagementProps {
   onOpenTaskDetail: (taskId: string) => void;
   onAddTask: (newTask: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  onOpenFirebaseModal?: () => void;
 }
 
 export const TaskManagement: React.FC<TaskManagementProps> = ({
@@ -54,7 +56,8 @@ export const TaskManagement: React.FC<TaskManagementProps> = ({
   initialFilter,
   onOpenTaskDetail,
   onAddTask,
-  onDeleteTask
+  onDeleteTask,
+  onOpenFirebaseModal
 }) => {
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -215,7 +218,18 @@ export const TaskManagement: React.FC<TaskManagementProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenFirebaseModal && (
+            <button
+              onClick={onOpenFirebaseModal}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
+              title="ตั้งค่าฐานข้อมูล Firebase Realtime / Persistent Storage"
+            >
+              <Database className="w-4 h-4 text-amber-600" />
+              <span>ฐานข้อมูล (Firebase)</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow transition cursor-pointer"
@@ -385,6 +399,24 @@ export const TaskManagement: React.FC<TaskManagementProps> = ({
                         {task.progress}%
                       </span>
                     </div>
+
+                    <div className="flex items-center justify-between pt-1.5 border-t border-slate-100/80">
+                      <span className="text-[11px] text-slate-400">แตะเพื่อดูรายละเอียด</span>
+                      {(currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'clerk' || currentUser.role === 'mayor') && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`ต้องการลบภารกิจงาน "${task.title}" ใช่หรือไม่?`)) {
+                              onDeleteTask(task.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                          title="ลบภารกิจงาน"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -503,15 +535,16 @@ export const TaskManagement: React.FC<TaskManagementProps> = ({
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          {currentUser.role === 'super_admin' && (
+                          {(currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'clerk' || currentUser.role === 'mayor') && (
                             <button
-                              onClick={() => {
-                                if (confirm(`ต้องการลบงาน "${task.title}" ใช่หรือไม่?`)) {
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`ต้องการลบภารกิจงาน "${task.title}" ใช่หรือไม่?`)) {
                                   onDeleteTask(task.id);
                                 }
                               }}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                              title="ลบงาน"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                              title="ลบภารกิจงาน"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

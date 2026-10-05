@@ -64,7 +64,9 @@ import { LoginView } from './components/LoginView';
 import { UserManagementView } from './components/UserManagementView';
 import { GoogleDriveManager } from './components/GoogleDriveManager';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { FirebaseConfigModal } from './components/FirebaseConfigModal';
 import { userService } from './services/userService';
+import { firebaseService } from './services/firebaseService';
 import { Search, X } from 'lucide-react';
 
 export default function App() {
@@ -72,16 +74,17 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(() => userService.getCurrentSession());
   const [allUsersList, setAllUsersList] = useState<User[]>(() => userService.getUsers());
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showFirebaseModal, setShowFirebaseModal] = useState(false);
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Application Data States
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  // Application Data States (Persistent LocalStorage + Real-time Firebase)
+  const [tasks, setTasks] = useState<Task[]>(() => firebaseService.getTasks());
   const [departments] = useState(INITIAL_DEPARTMENTS);
   const [categories] = useState(INITIAL_CATEGORIES);
   const [staff] = useState(INITIAL_STAFF);
-  const [complaints, setComplaints] = useState<CitizenComplaint[]>(INITIAL_COMPLAINTS);
-  const [documents, setDocuments] = useState<OfficialDocument[]>(INITIAL_DOCUMENTS);
+  const [complaints, setComplaints] = useState<CitizenComplaint[]>(() => firebaseService.getComplaints());
+  const [documents, setDocuments] = useState<OfficialDocument[]>(() => firebaseService.getDocuments());
   const [projects, setProjects] = useState<ProjectItem[]>(INITIAL_PROJECTS);
   const [procurements] = useState(INITIAL_PROCUREMENTS);
   const [settings, setSettings] = useState<SystemSettings>(INITIAL_SETTINGS);
@@ -133,16 +136,19 @@ export default function App() {
 
   // Handler: Add new task
   const handleAddTask = (newTask: Task) => {
-    setTasks(prev => [newTask, ...prev]);
+    firebaseService.saveTask(newTask, tasks);
+    setTasks(prev => [newTask, ...prev.filter(t => t.id !== newTask.id)]);
   };
 
   // Handler: Update task
   const handleUpdateTask = (updatedTask: Task) => {
+    firebaseService.saveTask(updatedTask, tasks);
     setTasks(prev => prev.map(t => (t.id === updatedTask.id ? updatedTask : t)));
   };
 
   // Handler: Delete task
   const handleDeleteTask = (taskId: string) => {
+    firebaseService.deleteTask(taskId, tasks);
     setTasks(prev => prev.filter(t => t.id !== taskId));
     if (activeTaskId === taskId) {
       setActiveTaskId(null);
@@ -151,27 +157,32 @@ export default function App() {
 
   // Handler: Update single task status (e.g. from Kanban)
   const handleUpdateTaskStatus = (taskId: string, newStatus: TaskStatus) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          status: newStatus,
-          progress: newStatus === 'completed' || newStatus === 'closed' ? 100 : t.progress,
-          completedDate: newStatus === 'completed' || newStatus === 'closed' ? new Date().toISOString().slice(0, 10) : t.completedDate,
-          timeline: [
-            {
-              id: `tm_${Date.now()}`,
-              timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-              action: `เลื่อนสถานะเป็น [${newStatus}]`,
-              actorName: currentUser.name,
-              actorRole: currentUser.roleTitle
-            },
-            ...t.timeline
-          ]
-        };
-      }
-      return t;
-    }));
+    setTasks(prev => {
+      const updated = prev.map(t => {
+        if (t.id === taskId) {
+          const upd = {
+            ...t,
+            status: newStatus,
+            progress: newStatus === 'completed' || newStatus === 'closed' ? 100 : t.progress,
+            completedDate: newStatus === 'completed' || newStatus === 'closed' ? new Date().toISOString().slice(0, 10) : t.completedDate,
+            timeline: [
+              {
+                id: `tm_${Date.now()}`,
+                timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+                action: `เลื่อนสถานะเป็น [${newStatus}]`,
+                actorName: currentUser ? currentUser.name : 'เจ้าหน้าที่',
+                actorRole: currentUser ? currentUser.roleTitle : 'ผู้ปฏิบัติงาน'
+              },
+              ...t.timeline
+            ]
+          };
+          firebaseService.saveTask(upd, prev);
+          return upd;
+        }
+        return t;
+      });
+      return updated;
+    });
   };
 
   // Handler: Convert document to Task
@@ -415,6 +426,7 @@ export default function App() {
               onOpenTaskDetail={setActiveTaskId}
               onAddTask={handleAddTask}
               onDeleteTask={handleDeleteTask}
+              onOpenFirebaseModal={() => setShowFirebaseModal(true)}
             />
           )}
 
@@ -429,6 +441,7 @@ export default function App() {
               onOpenTaskDetail={setActiveTaskId}
               onAddTask={handleAddTask}
               onDeleteTask={handleDeleteTask}
+              onOpenFirebaseModal={() => setShowFirebaseModal(true)}
             />
           )}
 
@@ -444,6 +457,7 @@ export default function App() {
               onOpenTaskDetail={setActiveTaskId}
               onAddTask={handleAddTask}
               onDeleteTask={handleDeleteTask}
+              onOpenFirebaseModal={() => setShowFirebaseModal(true)}
             />
           )}
 
@@ -471,8 +485,14 @@ export default function App() {
             <CitizenComplaints
               complaints={complaints}
               departments={departments}
-              onUpdateComplaint={(up) => setComplaints(prev => prev.map(c => c.id === up.id ? up : c))}
-              onAddComplaint={(newC) => setComplaints(prev => [newC, ...prev])}
+              onUpdateComplaint={(up) => {
+                firebaseService.saveComplaint(up, complaints);
+                setComplaints(prev => prev.map(c => c.id === up.id ? up : c));
+              }}
+              onAddComplaint={(newC) => {
+                firebaseService.saveComplaint(newC, complaints);
+                setComplaints(prev => [newC, ...prev]);
+              }}
             />
           )}
 
@@ -648,6 +668,7 @@ export default function App() {
               currentUser={currentUser}
               onUpdateSettings={(newSettings) => setSettings(newSettings)}
               onNavigateToGoogleDrive={() => setActiveSection('google_drive')}
+              onOpenFirebaseModal={() => setShowFirebaseModal(true)}
             />
           )}
         </main>
@@ -820,6 +841,18 @@ export default function App() {
         <ChangePasswordModal
           currentUser={currentUser}
           onClose={() => setShowChangePasswordModal(false)}
+        />
+      )}
+
+      {/* Firebase & Cloud Database Config Modal */}
+      {showFirebaseModal && (
+        <FirebaseConfigModal
+          onClose={() => setShowFirebaseModal(false)}
+          onDataReset={() => {
+            setTasks(firebaseService.getTasks());
+            setComplaints(firebaseService.getComplaints());
+            setDocuments(firebaseService.getDocuments());
+          }}
         />
       )}
     </div>

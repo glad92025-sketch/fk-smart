@@ -25,13 +25,15 @@ interface SystemSettingsViewProps {
   currentUser: User;
   onUpdateSettings: (newSettings: SystemSettings) => void;
   onNavigateToGoogleDrive?: () => void;
+  onOpenFirebaseModal?: () => void;
 }
 
 export const SystemSettingsView: React.FC<SystemSettingsViewProps> = ({
   settings,
   currentUser,
   onUpdateSettings,
-  onNavigateToGoogleDrive
+  onNavigateToGoogleDrive,
+  onOpenFirebaseModal
 }) => {
   const [formData, setFormData] = useState<SystemSettings>({ ...settings });
   const [lineNotifyToken, setLineNotifyToken] = useState('LINE_NOTIFY_TOKEN_FANGKHAM_OFFICIAL_***');
@@ -338,6 +340,34 @@ export const SystemSettingsView: React.FC<SystemSettingsViewProps> = ({
                 <span>สำรองขึ้น Google Drive ทันที</span>
               </button>
             </div>
+          </div>
+
+          {/* Firebase Real-time Cloud Database Card */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-amber-50/60 border border-amber-200">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-amber-950">
+                  ฐานข้อมูล Firebase Cloud Firestore (Real-time Database)
+                </span>
+                <span className="px-2 py-0.2 rounded-full bg-amber-200 text-amber-800 text-[10px] font-bold">
+                  เชื่อมต่อถาวร
+                </span>
+              </div>
+              <div className="text-xs text-amber-900 mt-0.5">
+                จัดเก็บข้อมูลภารกิจงาน เรื่องร้องเรียน และเอกสารแบบถาวร บันทึกทันทีเมื่อลบหรือสร้าง ไม่สูญหายเมื่อรีเฟรช
+              </div>
+            </div>
+
+            {onOpenFirebaseModal && (
+              <button
+                type="button"
+                onClick={onOpenFirebaseModal}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-sm cursor-pointer shrink-0"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>ตั้งค่าฐานข้อมูล Firebase</span>
+              </button>
+            )}
           </div>
         </div>
       </form>
