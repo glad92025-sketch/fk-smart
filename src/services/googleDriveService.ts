@@ -27,8 +27,8 @@ export const DEFAULT_GDRIVE_ACCOUNTS: GoogleDriveAccountConfig[] = [
     status: 'connected',
     authType: 'service_account',
     rootFolderId: '1aBcD99_FangkhamDocs_Archive_5TB',
-    serviceAccountEmail: 'fangkham-archive-sa@fk-smart-cloud.iam.gserviceaccount.com',
-    serviceAccountKey: '{"type":"service_account","project_id":"fk-smart-gov","client_email":"fangkham-archive-sa@fk-smart-cloud.iam.gserviceaccount.com"}',
+    serviceAccountEmail: 'fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com',
+    serviceAccountKey: '{"type":"service_account","project_id":"mineral-rune-386615","client_email":"fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com"}',
     assignedCategories: ['official_docs', 'central_archive'],
     lastSyncTime: new Date().toISOString(),
     fileCount: 428
