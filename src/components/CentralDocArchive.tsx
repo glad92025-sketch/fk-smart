@@ -106,7 +106,7 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
     if (matched) {
       return matched.webViewLink;
     }
-    return `https://drive.google.com/drive/folders/1aBcD99_FangkhamDocs_Archive_5TB`;
+    return `https://drive.google.com/drive/folders/16UbdpS3gIRR3EGgWi2VpnixACi3QyXwx`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -233,7 +233,7 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5">
-              บัญชีปลายทาง: <span className="font-mono text-blue-700 font-semibold bg-blue-100/70 px-1 py-0.5 rounded">fk.archive.drive01@gmail.com</span> • โฟลเดอร์: <span className="font-mono text-slate-700">/อบต.ฝางคำ/คลังเอกสารกลาง</span> • เอกสารทุกฉบับซิงค์ลงไดรฟ์ทันที
+              บัญชีปลายทาง: <span className="font-mono text-blue-700 font-semibold bg-blue-100/70 px-1 py-0.5 rounded">fk.archive.drive01@gmail.com</span> • โฟลเดอร์: <a href="https://drive.google.com/drive/folders/16UbdpS3gIRR3EGgWi2VpnixACi3QyXwx" target="_blank" rel="noopener noreferrer" className="font-mono text-blue-600 font-semibold hover:underline inline-flex items-center gap-0.5" title="คลิกเพื่อเปิดโฟลเดอร์นี้บน Google Drive"><span>คลังเอกสารกลาง (16UbdpS...)</span><ExternalLink className="w-3 h-3" /></a> • เอกสารทุกฉบับซิงค์ลงไดรฟ์ทันที
             </p>
           </div>
         </div>

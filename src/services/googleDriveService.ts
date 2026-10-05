@@ -26,9 +26,9 @@ export const DEFAULT_GDRIVE_ACCOUNTS: GoogleDriveAccountConfig[] = [
     usedCapacityGB: 148.6,
     status: 'connected',
     authType: 'service_account',
-    rootFolderId: '1aBcD99_FangkhamDocs_Archive_5TB',
+    rootFolderId: '16UbdpS3gIRR3EGgWi2VpnixACi3QyXwx',
     serviceAccountEmail: 'fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com',
-    serviceAccountKey: '{"type":"service_account","project_id":"mineral-rune-386615","client_email":"fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com"}',
+    serviceAccountKey: '{"type":"service_account","project_id":"mineral-rune-386615","client_email":"fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com","client_id":"104160608783220551922"}',
     assignedCategories: ['official_docs', 'central_archive'],
     lastSyncTime: new Date().toISOString(),
     fileCount: 428
@@ -196,6 +196,13 @@ class GoogleDriveManagerService {
       const savedAccounts = localStorage.getItem(STORAGE_KEY_CONFIGS);
       if (savedAccounts) {
         this.accounts = JSON.parse(savedAccounts);
+        const drive1 = this.accounts.find(a => a.id === 'drive_1');
+        if (drive1 && (!drive1.rootFolderId || drive1.rootFolderId === '1aBcD99_FangkhamDocs_Archive_5TB')) {
+          drive1.rootFolderId = '16UbdpS3gIRR3EGgWi2VpnixACi3QyXwx';
+          drive1.serviceAccountEmail = 'fk-smart-drive01@mineral-rune-386615.iam.gserviceaccount.com';
+          drive1.status = 'connected';
+          this.saveAccounts();
+        }
       } else {
         this.accounts = [...DEFAULT_GDRIVE_ACCOUNTS];
         this.saveAccounts();

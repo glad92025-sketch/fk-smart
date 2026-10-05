@@ -336,8 +336,18 @@ export const GoogleDriveManager: React.FC<GoogleDriveManagerProps> = ({ currentU
                   <div className="truncate">
                     อีเมล: <strong className="text-slate-700">{acc.email}</strong>
                   </div>
-                  <div className="truncate font-mono text-[11px]">
-                    Root Folder: <span className="text-blue-600">{acc.rootFolderId}</span>
+                  <div className="truncate font-mono text-[11px] flex items-center gap-1">
+                    <span>Root Folder:</span>
+                    <a
+                      href={`https://drive.google.com/drive/folders/${acc.rootFolderId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline flex items-center gap-0.5 font-bold"
+                      title="เปิดโฟลเดอร์นี้บน Google Drive"
+                    >
+                      <span className="truncate max-w-[160px]">{acc.rootFolderId}</span>
+                      <ExternalLink className="w-3 h-3 text-blue-500 shrink-0" />
+                    </a>
                   </div>
                   <div className="text-[11px] text-slate-400">
                     จำนวนไฟล์ในไดรฟ์: {acc.fileCount} ไฟล์
