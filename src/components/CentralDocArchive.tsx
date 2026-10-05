@@ -12,23 +12,28 @@ import {
   Calendar,
   X,
   FileCode,
-  CheckCircle2
+  CheckCircle2,
+  Cloud,
+  HardDrive
 } from 'lucide-react';
 import { DocumentArchive, Department, User } from '../types';
 import { formatThaiDate } from '../utils/thaiDate';
+import { googleDriveService } from '../services/googleDriveService';
 
 interface CentralDocArchiveProps {
   archives: DocumentArchive[];
   departments: Department[];
   currentUser: User;
   onAddArchive: (archive: DocumentArchive) => void;
+  onNavigateToGoogleDrive?: () => void;
 }
 
 export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
   archives,
   departments,
   currentUser,
-  onAddArchive
+  onAddArchive,
+  onNavigateToGoogleDrive
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -96,6 +101,21 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
     };
 
     onAddArchive(newDoc);
+
+    // Auto-mirror document to Google Drive 1 (5TB)
+    googleDriveService.uploadFile({
+      file: {
+        name: `${formData.docNo.replace(/[/\\?%*:|"<>]/g, '_')}_${formData.title}.${formData.fileFormat.toLowerCase()}`,
+        size: 1024 * 1024 * 2.5,
+        type: 'application/pdf'
+      },
+      category: 'central_archive',
+      categoryLabel: `คำสั่ง/ประกาศ (${formData.category})`,
+      uploadedBy: `${currentUser.name} (${currentUser.roleTitle})`,
+      folderPath: `/อบต.ฝางคำ/คลังเอกสารกลาง/${formData.category}`,
+      relatedModuleId: newDoc.id
+    });
+
     setShowAddModal(false);
     setFormData({
       docNo: '',
@@ -107,6 +127,8 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
       fileFormat: 'PDF',
       accessLevel: 'public'
     });
+    setDownloadToast(`บันทึกและซิงค์เอกสารขึ้น Google Drive 1 (5TB) สำเร็จ`);
+    setTimeout(() => setDownloadToast(null), 3500);
   };
 
   return (
@@ -122,6 +144,10 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 mb-1">
+            <Cloud className="w-3.5 h-3.5" />
+            <span>เชื่อมต่อคลาวด์ Google Drive 1 (ความจุ 5TB)</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <FolderArchive className="w-6 h-6 text-blue-600" />
             <span>คลังเอกสารกลาง & ระเบียบแบบฟอร์ม อบต.ฝางคำ</span>
@@ -131,13 +157,25 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>นำเข้าเอกสารใหม่</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {onNavigateToGoogleDrive && (
+            <button
+              onClick={onNavigateToGoogleDrive}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer border border-slate-200"
+            >
+              <HardDrive className="w-4 h-4 text-blue-600" />
+              <span>เปิด Google Drive 15TB</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>นำเข้าเอกสารใหม่</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Overview */}

@@ -21,6 +21,8 @@ import {
   SystemSettings,
   TaskCategory
 } from './types';
+import { REAL_DEPARTMENTS } from './data/departmentsData';
+import { INITIAL_STAFF_USERS } from './data/initialUsers';
 
 export const INITIAL_SETTINGS: SystemSettings = {
   orgName: 'องค์การบริหารส่วนตำบลฝางคำ',
@@ -52,302 +54,30 @@ export const INITIAL_CATEGORIES: TaskCategory[] = [
   { id: 'cat_other', name: 'งานอื่น ๆ', icon: 'layers' },
 ];
 
-export const INITIAL_DEPARTMENTS: Department[] = [
-  {
-    id: 'dept_office',
-    code: 'สป',
-    name: 'สำนักปลัด อบต.',
-    shortName: 'สำนักปลัด',
-    headName: 'นายประสิทธิ์ มงคลสุข',
-    headPosition: 'หัวหน้าสำนักปลัด (นักบริหารงานทั่วไป ระดับกลาง)',
-    memberCount: 14,
-    iconName: 'landmark',
-    color: '#0284c7', // sky
-    divisions: [
-      'งานธุรการและสารบรรณ',
-      'งานการเจ้าหน้าที่',
-      'งานนิติการ',
-      'งานป้องกันและบรรเทาสาธารณภัย',
-      'งานประชาสัมพันธ์',
-      'งานกิจการสภา',
-      'งานส่งเสริมการท่องเที่ยว',
-      'งานสังคมสงเคราะห์และสวัสดิการ',
-      'งานร้องเรียน/ร้องทุกข์'
-    ]
-  },
-  {
-    id: 'dept_finance',
-    code: 'กค',
-    name: 'กองคลัง',
-    shortName: 'กองคลัง',
-    headName: 'นางสาวจินตนา เพชรสุวรรณ',
-    headPosition: 'ผู้อำนวยการกองคลัง (นักบริหารงานการคลัง ระดับกลาง)',
-    memberCount: 10,
-    iconName: 'wallet',
-    color: '#10b981', // emerald
-    divisions: [
-      'งานการเงินและบัญชี',
-      'งานพัสดุและจัดซื้อจัดจ้าง',
-      'งานพัฒนารายได้และจัดเก็บภาษี',
-      'งานแผนที่ภาษีและทะเบียนทรัพย์สิน',
-      'งานงบประมาณ',
-      'งานเร่งรัดลูกหนี้'
-    ]
-  },
-  {
-    id: 'dept_tech',
-    code: 'กช',
-    name: 'กองช่าง',
-    shortName: 'กองช่าง',
-    headName: 'นายสุรชัย วงศ์สว่าง',
-    headPosition: 'ผู้อำนวยการกองช่าง (นักบริหารงานช่าง ระดับกลาง)',
-    memberCount: 16,
-    iconName: 'hard-hat',
-    color: '#f59e0b', // amber
-    divisions: [
-      'งานก่อสร้างและผังเมือง',
-      'งานออกแบบและประมาณราคา',
-      'งานควบคุมอาคาร',
-      'งานไฟฟ้าและสาธารณูปโภค',
-      'งานประปา',
-      'งานถนนและสะพาน',
-      'งานสำรวจ'
-    ]
-  },
-  {
-    id: 'dept_edu',
-    code: 'กศ',
-    name: 'กองการศึกษา ศาสนาและวัฒนธรรม',
-    shortName: 'กองการศึกษา',
-    headName: 'นางมาลี รัตนโชติ',
-    headPosition: 'ผู้อำนวยการกองการศึกษา (นักบริหารงานการศึกษา ระดับกลาง)',
-    memberCount: 12,
-    iconName: 'graduation-cap',
-    color: '#8b5cf6', // purple
-    divisions: [
-      'งานการศึกษาและโรงเรียนอนุบาล',
-      'งานศูนย์พัฒนาเด็กเล็ก (ศพด.)',
-      'งานกีฬาและนันทนาการ',
-      'งานศาสนา วัฒนธรรม และประเพณีท้องถิ่น',
-      'งานส่งเสริมการเรียนรู้และภูมิปัญญาท้องถิ่น'
-    ]
-  }
-];
+export const INITIAL_DEPARTMENTS: Department[] = REAL_DEPARTMENTS;
 
-export const INITIAL_USERS: User[] = [
-  {
-    id: 'usr_super',
-    name: 'ผู้ดูแลระบบสูงสุด (Super Admin)',
-    email: 'admin@fangkham.go.th',
-    phone: '081-111-2233',
-    role: 'super_admin',
-    roleTitle: 'Super Administrator',
-    departmentId: 'dept_office',
-    departmentName: 'สำนักปลัด อบต.',
-    position: 'นักวิชาการคอมพิวเตอร์ชำนาญการ',
-  },
-  {
-    id: 'usr_mayor',
-    name: 'ดร.สมเกียรติ ธนะศักดิ์ศิริ',
-    email: 'mayor@fangkham.go.th',
-    phone: '089-999-8877',
-    role: 'mayor',
-    roleTitle: 'นายก อบต.',
-    departmentId: 'dept_office',
-    departmentName: 'ผู้บริหาร อบต.ฝางคำ',
-    position: 'นายกองค์การบริหารส่วนตำบลฝางคำ',
-  },
-  {
-    id: 'usr_deputy',
-    name: 'นายชูชาติ บุญเรือง',
-    email: 'deputy1@fangkham.go.th',
-    phone: '086-555-4433',
-    role: 'deputy_mayor',
-    roleTitle: 'รองนายก อบต.',
-    departmentId: 'dept_office',
-    departmentName: 'ผู้บริหาร อบต.ฝางคำ',
-    position: 'รองนายก อบต. ลำดับที่ 1',
-  },
-  {
-    id: 'usr_clerk',
-    name: 'ว่าที่ ร.ต. อุดมทรัพย์ ภักดีชน',
-    email: 'clerk@fangkham.go.th',
-    phone: '087-444-1234',
-    role: 'clerk',
-    roleTitle: 'ปลัด อบต.',
-    departmentId: 'dept_office',
-    departmentName: 'สำนักปลัด อบต.',
-    position: 'ปลัดองค์การบริหารส่วนตำบลฝางคำ',
-  },
-  {
-    id: 'usr_head_tech',
-    name: 'นายสุรชัย วงศ์สว่าง',
-    email: 'tech.head@fangkham.go.th',
-    phone: '081-234-5678',
-    role: 'dept_head',
-    roleTitle: 'หัวหน้าส่วนราชการ (กองช่าง)',
-    departmentId: 'dept_tech',
-    departmentName: 'กองช่าง',
-    position: 'ผู้อำนวยการกองช่าง',
-  },
-  {
-    id: 'usr_head_finance',
-    name: 'นางสาวจินตนา เพชรสุวรรณ',
-    email: 'finance.head@fangkham.go.th',
-    phone: '082-345-6789',
-    role: 'dept_head',
-    roleTitle: 'หัวหน้าส่วนราชการ (กองคลัง)',
-    departmentId: 'dept_finance',
-    departmentName: 'กองคลัง',
-    position: 'ผู้อำนวยการกองคลัง',
-  },
-  {
-    id: 'usr_officer_tech',
-    name: 'นายสมชาย คำมั่น',
-    email: 'somchai.k@fangkham.go.th',
-    phone: '083-987-6543',
-    role: 'officer',
-    roleTitle: 'เจ้าหน้าที่ผู้ปฏิบัติงาน (กองช่าง)',
-    departmentId: 'dept_tech',
-    departmentName: 'กองช่าง',
-    divisionName: 'งานถนนและสะพาน',
-    position: 'นายช่างโยธาปฏิบัติงาน',
-  },
-  {
-    id: 'usr_officer_office',
-    name: 'นางกานดา สุขเจริญ',
-    email: 'kanda.s@fangkham.go.th',
-    phone: '084-321-7654',
-    role: 'officer',
-    roleTitle: 'เจ้าหน้าที่ผู้ปฏิบัติงาน (สำนักปลัด)',
-    departmentId: 'dept_office',
-    departmentName: 'สำนักปลัด อบต.',
-    divisionName: 'งานธุรการและสารบรรณ',
-    position: 'เจ้าพนักงานธุรการชำนาญงาน',
-  }
-];
+export const INITIAL_USERS: User[] = INITIAL_STAFF_USERS;
 
-export const INITIAL_STAFF: StaffMember[] = [
-  {
-    id: 'stf_1',
-    name: 'นายสมชาย คำมั่น',
-    position: 'นายช่างโยธาปฏิบัติงาน',
-    departmentId: 'dept_tech',
-    departmentName: 'กองช่าง',
-    divisionName: 'งานถนนและสะพาน',
-    phone: '083-987-6543',
-    email: 'somchai.k@fangkham.go.th',
-    status: 'ลงพื้นที่',
-    totalTasks: 25,
-    completedTasks: 18,
-    inProgressTasks: 5,
-    overdueTasks: 2,
-    urgentTasks: 3,
-    avgCompletionDays: 4.2
-  },
-  {
-    id: 'stf_2',
-    name: 'นายธีรพงษ์ ศรีวิชัย',
-    position: 'วิศวกรโยธาชำนาญการ',
-    departmentId: 'dept_tech',
-    departmentName: 'กองช่าง',
-    divisionName: 'งานออกแบบและประมาณราคา',
-    phone: '085-112-9988',
-    email: 'teerapong@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 19,
-    completedTasks: 15,
-    inProgressTasks: 3,
-    overdueTasks: 1,
-    urgentTasks: 2,
-    avgCompletionDays: 3.8
-  },
-  {
-    id: 'stf_3',
-    name: 'นางกานดา สุขเจริญ',
-    position: 'เจ้าพนักงานธุรการชำนาญงาน',
-    departmentId: 'dept_office',
-    departmentName: 'สำนักปลัด อบต.',
-    divisionName: 'งานธุรการและสารบรรณ',
-    phone: '084-321-7654',
-    email: 'kanda.s@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 32,
-    completedTasks: 28,
-    inProgressTasks: 4,
-    overdueTasks: 0,
-    urgentTasks: 1,
-    avgCompletionDays: 1.5
-  },
-  {
-    id: 'stf_4',
-    name: 'นิติกร วรวิทย์ แสนสุข',
-    position: 'นิติกรปฏิบัติการ',
-    departmentId: 'dept_office',
-    departmentName: 'สำนักปลัด อบต.',
-    divisionName: 'งานนิติการและร้องเรียน',
-    phone: '081-778-2231',
-    email: 'worawit@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 14,
-    completedTasks: 10,
-    inProgressTasks: 3,
-    overdueTasks: 1,
-    urgentTasks: 2,
-    avgCompletionDays: 5.1
-  },
-  {
-    id: 'stf_5',
-    name: 'นางสาวพัชรี นวลจันทร์',
-    position: 'นักวิชาการพัสดุปฏิบัติการ',
-    departmentId: 'dept_finance',
-    departmentName: 'กองคลัง',
-    divisionName: 'งานพัสดุและจัดซื้อจัดจ้าง',
-    phone: '089-663-1122',
-    email: 'patcharee@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 22,
-    completedTasks: 17,
-    inProgressTasks: 4,
-    overdueTasks: 1,
-    urgentTasks: 2,
-    avgCompletionDays: 3.5
-  },
-  {
-    id: 'stf_6',
-    name: 'นางวราภรณ์ มิตรสมาน',
-    position: 'นักวิชาการเงินและบัญชีปฏิบัติการ',
-    departmentId: 'dept_finance',
-    departmentName: 'กองคลัง',
-    divisionName: 'งานการเงินและบัญชี',
-    phone: '082-998-3344',
-    email: 'waraporn@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 20,
-    completedTasks: 19,
-    inProgressTasks: 1,
-    overdueTasks: 0,
-    urgentTasks: 0,
-    avgCompletionDays: 2.1
-  },
-  {
-    id: 'stf_7',
-    name: 'นายบุญเลิศ เจริญผล',
-    position: 'นักวิชาการศึกษาชำนาญการ',
-    departmentId: 'dept_edu',
-    departmentName: 'กองการศึกษาฯ',
-    divisionName: 'งานการศึกษาและ ศพด.',
-    phone: '087-332-1199',
-    email: 'boonlert@fangkham.go.th',
-    status: 'ปฏิบัติงาน',
-    totalTasks: 16,
-    completedTasks: 12,
-    inProgressTasks: 4,
-    overdueTasks: 0,
-    urgentTasks: 1,
-    avgCompletionDays: 3.0
-  }
-];
+export const INITIAL_STAFF: StaffMember[] = INITIAL_STAFF_USERS
+  .filter(u => u.id !== 'usr_admin')
+  .map((u, i) => ({
+    id: u.id,
+    name: u.name,
+    position: u.position,
+    departmentId: u.departmentId,
+    departmentName: u.departmentName,
+    divisionName: u.divisionName || u.departmentName,
+    phone: u.phone,
+    email: u.email,
+    status: (['ปฏิบัติงาน', 'ปฏิบัติงาน', 'ปฏิบัติงาน', 'ลงพื้นที่', 'อบรม/สัมมนา'][i % 5]) as any,
+    totalTasks: Math.floor(10 + ((i * 7) % 25)),
+    completedTasks: Math.floor(6 + ((i * 5) % 18)),
+    inProgressTasks: Math.floor(2 + ((i * 3) % 6)),
+    overdueTasks: (i % 8 === 0) ? 1 : 0,
+    urgentTasks: (i % 6 === 0) ? 2 : 0,
+    avgCompletionDays: parseFloat((2.0 + ((i % 10) * 0.4)).toFixed(1)),
+    rating: parseFloat((4.2 + ((i % 8) * 0.1)).toFixed(1))
+  }));
 
 export const INITIAL_TASKS: Task[] = [
   {

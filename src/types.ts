@@ -14,6 +14,9 @@ export type RoleType =
 
 export interface User {
   id: string;
+  employeeCode?: string;
+  username?: string;
+  password?: string;
   name: string;
   email: string;
   phone: string;
@@ -23,15 +26,24 @@ export interface User {
   departmentName: string;
   divisionName?: string;
   position: string;
+  employmentType?: 'ข้าราชการ' | 'พนักงานจ้างตามภารกิจ' | 'จ้างเหมาบริการ' | 'ฝ่ายการเมือง / คณะบริหาร' | 'ทั่วไป' | string;
+  status?: 'active' | 'suspended';
   avatarUrl?: string;
+  createdAt?: string;
+  lastLogin?: string;
+  mustChangePassword?: boolean;
+  permissions?: string[];
 }
 
 export type DepartmentId = 
   | 'dept_office'       // สำนักปลัด อบต.
   | 'dept_finance'      // กองคลัง
   | 'dept_tech'         // กองช่าง
+  | 'dept_welfare'      // กองสวัสดิการสังคม
   | 'dept_edu'          // กองการศึกษา ศาสนาและวัฒนธรรม
-  | 'dept_public_health'// กองสาธารณสุขและสิ่งแวดล้อม (ตัวอย่างกองที่เพิ่มได้)
+  | 'dept_audit'        // หน่วยตรวจสอบภายใน
+  | 'dept_exec'         // ฝ่ายบริหารและสภา อบต.
+  | 'dept_public_health';// กองสาธารณสุขและสิ่งแวดล้อม
 
 export interface Department {
   id: DepartmentId | string;
@@ -389,3 +401,65 @@ export interface SystemSettings {
   autoNotifyUrgent: boolean;
   themePrimaryColor: string;
 }
+
+// 44. ระบบจัดเก็บ Google Drive แบบ 3 บัญชี (Account 1-3 x 5TB = 15TB)
+export type GoogleDriveAuthType = 'service_account' | 'oauth2' | 'api_key_picker';
+
+export type StorageRoutingCategory = 
+  | 'official_docs'      // หนังสือราชการรับ-ส่ง
+  | 'central_archive'    // คลังเอกสารกลาง คำสั่ง ประกาศ
+  | 'complaints'         // ภาพถ่ายและหลักฐานเรื่องร้องเรียน
+  | 'field_ops'          // ภาพถ่ายพิกัดงานภาคสนาม
+  | 'backups'            // สำรองข้อมูลระบบและฐานข้อมูล
+  | 'projects'           // แผนงานโครงการ
+  | 'assets'             // ภาพถ่ายและทะเบียนครุภัณฑ์
+  | 'general';           // ทั่วไป
+
+export interface GoogleDriveAccountConfig {
+  id: 'drive_1' | 'drive_2' | 'drive_3';
+  name: string;
+  label: string;
+  email: string;
+  totalCapacityGB: number;   // 5,120 GB (5.0 TB)
+  usedCapacityGB: number;
+  status: 'connected' | 'warning' | 'unconfigured' | 'error';
+  authType: GoogleDriveAuthType;
+  rootFolderId: string;
+  serviceAccountEmail?: string;
+  serviceAccountKey?: string;
+  oauthClientId?: string;
+  oauthClientSecret?: string;
+  oauthRefreshToken?: string;
+  assignedCategories: StorageRoutingCategory[];
+  lastSyncTime?: string;
+  fileCount: number;
+}
+
+export interface GoogleDrivePoolStatus {
+  totalPoolCapacityTB: number; // 15.0 TB
+  totalPoolUsedTB: number;
+  routingPolicy: 'category_routing' | 'auto_load_balance' | 'failover_fill';
+  accounts: GoogleDriveAccountConfig[];
+  lastHealthCheck: string;
+}
+
+export interface DriveFileItem {
+  id: string;
+  driveAccountId: 'drive_1' | 'drive_2' | 'drive_3';
+  driveAccountName: string;
+  name: string;
+  originalName: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  mimeType: string;
+  category: StorageRoutingCategory;
+  categoryLabel: string;
+  googleDriveFileId: string;
+  webViewLink: string;
+  webContentLink: string;
+  folderPath: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  relatedModuleId?: string;
+}
+

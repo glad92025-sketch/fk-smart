@@ -51,6 +51,8 @@ const SECTION_LABELS: Record<NavSection, { title: string; category: string }> = 
   kpis: { title: 'ตัวชี้วัดประสิทธิภาพ (KPI & LPA)', category: 'ประเมินผลงาน' },
   reports: { title: 'ศูนย์ออกรายงานและพิมพ์หนังสือ', category: 'รายงานและพิมพ์' },
   doc_center: { title: 'คลังเอกสาร & แบบฟอร์มกลาง', category: 'คลังความรู้' },
+  google_drive: { title: 'Google Drive คลาวด์ความจุ 15TB (3 บัญชี)', category: 'จัดเก็บข้อมูลบนคลาวด์' },
+  users_admin: { title: 'จัดการผู้ใช้งาน & สิทธิ์ตามกอง/ตำแหน่ง', category: 'ดูแลระบบ' },
   audit_logs: { title: 'บันทึกการใช้งานระบบ (Audit Logs)', category: 'ความปลอดภัย' },
   settings: { title: 'ตั้งค่าระบบ & สิทธิการใช้งาน', category: 'ดูแลระบบ' },
   php_source: { title: 'โครงสร้างระบบราชการ PHP/MySQL', category: 'คู่มือนักพัฒนา' }

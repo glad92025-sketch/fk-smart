@@ -22,7 +22,11 @@ import {
   Settings,
   Code2,
   ChevronRight,
-  X
+  X,
+  HardDrive,
+  UserCheck,
+  KeyRound,
+  LogOut
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -46,6 +50,8 @@ export type NavSection =
   | 'kpis'
   | 'reports'
   | 'doc_center'
+  | 'google_drive'
+  | 'users_admin'
   | 'audit_logs'
   | 'settings'
   | 'php_source';
@@ -58,6 +64,8 @@ interface SidebarProps {
   myTasksCount: number;
   overdueCount: number;
   complaintsCount: number;
+  onOpenChangePassword?: () => void;
+  onLogout?: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -70,6 +78,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   myTasksCount,
   overdueCount,
   complaintsCount,
+  onOpenChangePassword,
+  onLogout,
   isMobileOpen = false,
   onCloseMobile
 }) => {
@@ -152,6 +162,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'คลังเอกสารกลาง',
           icon: BookOpen,
           badge: null
+        },
+        {
+          id: 'google_drive' as NavSection,
+          label: 'Google Drive คลาวด์ (15TB)',
+          icon: HardDrive,
+          badge: '15TB',
+          badgeColor: 'bg-blue-600 text-white'
         }
       ]
     },
@@ -210,6 +227,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       groupTitle: 'ระบบและความปลอดภัย',
       items: [
+        {
+          id: 'users_admin' as NavSection,
+          label: 'จัดการผู้ใช้งาน & สิทธิ์',
+          icon: UserCheck,
+          badge: '69 คน',
+          badgeColor: 'bg-emerald-600 text-white'
+        },
         {
           id: 'audit_logs' as NavSection,
           label: 'Audit Log ตรวจสอบย้อนหลัง',
@@ -328,10 +352,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Sidebar Footer */}
-      <div className="p-3 mx-3 mb-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-[10px] text-slate-400 text-center">
-        <div>อบต.ฝางคำ จ.มหาสารคาม</div>
-        <div className="text-slate-400 font-mono mt-0.5">ระบบพร้อมใช้สำหรับราชการ 2569</div>
+      {/* Sidebar Footer with User Session & Logout */}
+      <div className="p-3 mx-3 mb-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-slate-300 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+            {currentUser.name.slice(0, 2)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-bold text-white truncate" title={currentUser.name}>
+              {currentUser.name}
+            </div>
+            <div className="text-[10px] text-amber-300 font-medium truncate">
+              {currentUser.roleTitle}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-800/80 text-[11px]">
+          {onOpenChangePassword && (
+            <button
+              onClick={onOpenChangePassword}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center justify-center gap-1 cursor-pointer"
+              title="เปลี่ยนรหัสผ่าน"
+            >
+              <KeyRound className="w-3 h-3 text-amber-400" />
+              <span>รหัสผ่าน</span>
+            </button>
+          )}
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 hover:text-white transition flex items-center justify-center gap-1 cursor-pointer border border-rose-900/40"
+              title="ออกจากระบบ"
+            >
+              <LogOut className="w-3 h-3 text-rose-400" />
+              <span>ออกจากระบบ</span>
+            </button>
+          )}
+        </div>
+
+        <div className="text-[10px] text-slate-400 text-center pt-1 border-t border-slate-800/50">
+          <div>อบต.ฝางคำ อ.สิรินธร จ.อุบลราชธานี</div>
+          <div className="text-blue-400 font-mono text-[9px] mt-0.5">Google Drive 15TB Connected</div>
+        </div>
       </div>
     </>
   );

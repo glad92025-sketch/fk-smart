@@ -8,7 +8,9 @@ import {
   AlertTriangle, 
   Sparkles,
   Building2,
-  Menu
+  Menu,
+  LogOut,
+  KeyRound
 } from 'lucide-react';
 import { User, SystemSettings, Task } from '../types';
 import { formatThaiDate } from '../utils/thaiDate';
@@ -23,6 +25,8 @@ interface NavbarProps {
   onOpenGlobalSearch: () => void;
   onOpenAiAssistant: () => void;
   onToggleMobileMenu?: () => void;
+  onLogout?: () => void;
+  onOpenChangePassword?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,7 +38,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenTaskDetail,
   onOpenGlobalSearch,
   onOpenAiAssistant,
-  onToggleMobileMenu
+  onToggleMobileMenu,
+  onLogout,
+  onOpenChangePassword
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
@@ -323,6 +329,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <div className="p-2 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 text-center">
                   กำลังใช้งาน: <strong className="text-slate-700">{currentUser.name}</strong> ({currentUser.roleTitle})
+                </div>
+
+                <div className="p-2 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-1.5 text-[11px]">
+                  {onOpenChangePassword && (
+                    <button
+                      onClick={() => {
+                        setShowRoleMenu(false);
+                        onOpenChangePassword();
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center gap-1 transition cursor-pointer font-medium"
+                    >
+                      <KeyRound className="w-3 h-3 text-amber-500" />
+                      <span>เปลี่ยนรหัส</span>
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button
+                      onClick={() => {
+                        setShowRoleMenu(false);
+                        onLogout();
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 flex items-center justify-center gap-1 transition cursor-pointer font-medium"
+                    >
+                      <LogOut className="w-3 h-3 text-rose-500" />
+                      <span>ออกจากระบบ</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}

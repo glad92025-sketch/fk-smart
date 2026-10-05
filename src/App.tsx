@@ -60,11 +60,18 @@ import { ResponsiveUtilityBar } from './components/ResponsiveUtilityBar';
 import { MobileQuickActions } from './components/MobileQuickActions';
 import { EasyUseGuideModal } from './components/EasyUseGuideModal';
 import { NewTaskModal } from './components/NewTaskModal';
+import { LoginView } from './components/LoginView';
+import { UserManagementView } from './components/UserManagementView';
+import { GoogleDriveManager } from './components/GoogleDriveManager';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { userService } from './services/userService';
 import { Search, X } from 'lucide-react';
 
 export default function App() {
-  // Current user state (defaults to Mayor, can switch to any of the 7 roles)
-  const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]);
+  // Current user state (from session storage or null if not logged in)
+  const [currentUser, setCurrentUser] = useState<User | null>(() => userService.getCurrentSession());
+  const [allUsersList, setAllUsersList] = useState<User[]>(() => userService.getUsers());
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -106,6 +113,7 @@ export default function App() {
   }, [tasks]);
 
   const myTasksCount = useMemo(() => {
+    if (!currentUser) return 0;
     return tasks.filter(t => t.assigneeId === currentUser.id && !['completed', 'closed'].includes(t.status)).length;
   }, [tasks, currentUser]);
 
@@ -314,19 +322,39 @@ export default function App() {
     return { tasks: taskMatches, complaints: complaintMatches, docs: docMatches };
   }, [globalSearchQuery, tasks, complaints, documents]);
 
+  // Authentication Guard: If not logged in, render the login view
+  if (!currentUser) {
+    return (
+      <LoginView
+        onLoginSuccess={(u) => {
+          setCurrentUser(u);
+          setAllUsersList(userService.getUsers());
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800">
       {/* Top Navbar */}
       <Navbar
         currentUser={currentUser}
-        onSwitchUser={setCurrentUser}
-        allUsers={INITIAL_USERS}
+        onSwitchUser={(user) => {
+          setCurrentUser(user);
+          userService.setCurrentSession(user);
+        }}
+        allUsers={allUsersList}
         settings={settings}
         tasks={tasks}
         onOpenTaskDetail={setActiveTaskId}
         onOpenGlobalSearch={() => setShowGlobalSearch(true)}
         onOpenAiAssistant={() => setShowAiModal(true)}
         onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+        onLogout={() => {
+          userService.clearSession();
+          setCurrentUser(null);
+        }}
+        onOpenChangePassword={() => setShowChangePasswordModal(true)}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -341,6 +369,11 @@ export default function App() {
           complaintsCount={activeComplaintsCount}
           isMobileOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
+          onLogout={() => {
+            userService.clearSession();
+            setCurrentUser(null);
+          }}
+          onOpenChangePassword={() => setShowChangePasswordModal(true)}
         />
 
         {/* Main Content Area */}
@@ -559,6 +592,45 @@ export default function App() {
               departments={departments}
               currentUser={currentUser}
               onAddArchive={(newArc) => setDocArchives(prev => [newArc, ...prev])}
+              onNavigateToGoogleDrive={() => setActiveSection('google_drive')}
+            />
+          )}
+
+          {/* Section: Google Drive Cloud Pool (15TB) */}
+          {activeSection === 'google_drive' && (
+            <GoogleDriveManager
+              currentUser={currentUser}
+              systemData={{
+                tasks,
+                departments,
+                categories,
+                staff,
+                complaints,
+                documents,
+                projects,
+                procurements,
+                settings,
+                fieldOps,
+                meetings,
+                assets,
+                kpis,
+                docArchives,
+                users: allUsersList
+              }}
+            />
+          )}
+
+          {/* Section: User Management & Access Control */}
+          {activeSection === 'users_admin' && (
+            <UserManagementView
+              currentUser={currentUser}
+              onSwitchUser={(user) => {
+                setCurrentUser(user);
+                userService.setCurrentSession(user);
+              }}
+              onRefreshData={() => {
+                setAllUsersList(userService.getUsers());
+              }}
             />
           )}
 
@@ -575,6 +647,7 @@ export default function App() {
               settings={settings}
               currentUser={currentUser}
               onUpdateSettings={(newSettings) => setSettings(newSettings)}
+              onNavigateToGoogleDrive={() => setActiveSection('google_drive')}
             />
           )}
         </main>
@@ -741,6 +814,14 @@ export default function App() {
         staff={staff}
         currentUser={currentUser}
       />
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <ChangePasswordModal
+          currentUser={currentUser}
+          onClose={() => setShowChangePasswordModal(false)}
+        />
+      )}
     </div>
   );
 }

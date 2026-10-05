@@ -12,20 +12,26 @@ import {
   RefreshCw,
   Sliders,
   Shield,
-  MessageSquare
+  MessageSquare,
+  Cloud,
+  UploadCloud,
+  ExternalLink
 } from 'lucide-react';
 import { SystemSettings, User } from '../types';
+import { googleDriveService } from '../services/googleDriveService';
 
 interface SystemSettingsViewProps {
   settings: SystemSettings;
   currentUser: User;
   onUpdateSettings: (newSettings: SystemSettings) => void;
+  onNavigateToGoogleDrive?: () => void;
 }
 
 export const SystemSettingsView: React.FC<SystemSettingsViewProps> = ({
   settings,
   currentUser,
-  onUpdateSettings
+  onUpdateSettings,
+  onNavigateToGoogleDrive
 }) => {
   const [formData, setFormData] = useState<SystemSettings>({ ...settings });
   const [lineNotifyToken, setLineNotifyToken] = useState('LINE_NOTIFY_TOKEN_FANGKHAM_OFFICIAL_***');
@@ -278,6 +284,60 @@ export const SystemSettingsView: React.FC<SystemSettingsViewProps> = ({
                 </>
               )}
             </button>
+          </div>
+
+          {/* Google Drive 15TB Cloud Backup Card */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-blue-50/50 border border-blue-200">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-blue-950">
+                  Google Drive Cloud Pool (15.0 TB - 3 บัญชี)
+                </span>
+                <span className="px-2 py-0.2 rounded-full bg-blue-200 text-blue-800 text-[10px] font-bold">
+                  ออนไลน์
+                </span>
+              </div>
+              <div className="text-xs text-blue-800 mt-0.5">
+                จัดเก็บเอกสารราชการ ภาพถ่ายเรื่องร้องเรียน และ Snapshot สำรองข้อมูลระบบ 5TB x 3 บัญชี
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {onNavigateToGoogleDrive && (
+                <button
+                  type="button"
+                  onClick={onNavigateToGoogleDrive}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>จัดการไดรฟ์ 15TB</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsBackingUp(true);
+                  try {
+                    await googleDriveService.createSystemCloudBackup(
+                      { settings: formData, timestamp: new Date().toISOString() },
+                      `${currentUser.name} (${currentUser.roleTitle})`
+                    );
+                    setToastMessage('สำรองข้อมูลขึ้น Google Drive ไดรฟ์ 3 เรียบร้อยแล้ว');
+                    setTimeout(() => setToastMessage(null), 3500);
+                  } catch (e: any) {
+                    setToastMessage(`สำรองข้อมูลล้มเหลว: ${e.message}`);
+                  } finally {
+                    setIsBackingUp(false);
+                  }
+                }}
+                disabled={isBackingUp}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-sm cursor-pointer shrink-0"
+              >
+                <Cloud className="w-3.5 h-3.5" />
+                <span>สำรองขึ้น Google Drive ทันที</span>
+              </button>
+            </div>
           </div>
         </div>
       </form>
