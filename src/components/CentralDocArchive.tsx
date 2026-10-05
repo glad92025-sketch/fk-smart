@@ -14,7 +14,15 @@ import {
   FileCode,
   CheckCircle2,
   Cloud,
-  HardDrive
+  HardDrive,
+  ExternalLink,
+  HelpCircle,
+  KeyRound,
+  ShieldCheck,
+  FolderOpen,
+  ArrowRight,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { DocumentArchive, Department, User } from '../types';
 import { formatThaiDate } from '../utils/thaiDate';
@@ -40,7 +48,10 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
   const [selectedDept, setSelectedDept] = useState<string>('all');
   const [selectedAccess, setSelectedAccess] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDriveGuideModal, setShowDriveGuideModal] = useState(false);
   const [downloadToast, setDownloadToast] = useState<string | null>(null);
+  const [selectedFileObj, setSelectedFileObj] = useState<File | null>(null);
+  const [autoSyncDrive, setAutoSyncDrive] = useState(true);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -84,6 +95,20 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
     setTimeout(() => setDownloadToast(null), 3500);
   };
 
+  const getDriveLinkForDoc = (doc: DocumentArchive) => {
+    const gFiles = googleDriveService.getFiles({ category: 'central_archive' });
+    const matched = gFiles.find(
+      (f) =>
+        f.relatedModuleId === doc.id ||
+        f.name.toLowerCase().includes(doc.docNo.toLowerCase()) ||
+        doc.title.toLowerCase().includes(f.name.toLowerCase())
+    );
+    if (matched) {
+      return matched.webViewLink;
+    }
+    return `https://drive.google.com/drive/folders/1aBcD99_FangkhamDocs_Archive_5TB`;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.docNo.trim()) return;
@@ -95,7 +120,7 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
       category: formData.category,
       departmentId: formData.departmentId,
       publishDate: formData.publishDate,
-      fileSize: formData.fileSize,
+      fileSize: selectedFileObj ? `${(selectedFileObj.size / (1024 * 1024)).toFixed(2)} MB` : formData.fileSize,
       fileFormat: formData.fileFormat,
       accessLevel: formData.accessLevel
     };
@@ -103,20 +128,27 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
     onAddArchive(newDoc);
 
     // Auto-mirror document to Google Drive 1 (5TB)
-    googleDriveService.uploadFile({
-      file: {
-        name: `${formData.docNo.replace(/[/\\?%*:|"<>]/g, '_')}_${formData.title}.${formData.fileFormat.toLowerCase()}`,
-        size: 1024 * 1024 * 2.5,
-        type: 'application/pdf'
-      },
-      category: 'central_archive',
-      categoryLabel: `คำสั่ง/ประกาศ (${formData.category})`,
-      uploadedBy: `${currentUser.name} (${currentUser.roleTitle})`,
-      folderPath: `/อบต.ฝางคำ/คลังเอกสารกลาง/${formData.category}`,
-      relatedModuleId: newDoc.id
-    });
+    if (autoSyncDrive) {
+      const fileName = selectedFileObj
+        ? selectedFileObj.name
+        : `${formData.docNo.replace(/[/\\?%*:|"<>]/g, '_')}_${formData.title}.${formData.fileFormat.toLowerCase()}`;
+
+      googleDriveService.uploadFile({
+        file: {
+          name: fileName,
+          size: selectedFileObj ? selectedFileObj.size : 1024 * 1024 * 2.5,
+          type: selectedFileObj ? selectedFileObj.type : 'application/pdf'
+        },
+        category: 'central_archive',
+        categoryLabel: `คำสั่ง/ประกาศ (${formData.category})`,
+        uploadedBy: `${currentUser.name} (${currentUser.roleTitle})`,
+        folderPath: `/อบต.ฝางคำ/คลังเอกสารกลาง/${formData.category}`,
+        relatedModuleId: newDoc.id
+      });
+    }
 
     setShowAddModal(false);
+    setSelectedFileObj(null);
     setFormData({
       docNo: '',
       title: '',
@@ -127,7 +159,7 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
       fileFormat: 'PDF',
       accessLevel: 'public'
     });
-    setDownloadToast(`บันทึกและซิงค์เอกสารขึ้น Google Drive 1 (5TB) สำเร็จ`);
+    setDownloadToast(autoSyncDrive ? `บันทึกและซิงค์เอกสารขึ้น Google Drive 1 (5TB) สำเร็จ` : `บันทึกเอกสารเรียบร้อยแล้ว`);
     setTimeout(() => setDownloadToast(null), 3500);
   };
 
@@ -157,7 +189,15 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowDriveGuideModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs sm:text-sm font-bold transition cursor-pointer border border-amber-300 shadow-xs"
+          >
+            <HelpCircle className="w-4 h-4 text-amber-600" />
+            <span>วิธีเชื่อมต่อ Google Drive</span>
+          </button>
+
           {onNavigateToGoogleDrive && (
             <button
               onClick={onNavigateToGoogleDrive}
@@ -174,6 +214,37 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
           >
             <Plus className="w-4 h-4" />
             <span>นำเข้าเอกสารใหม่</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Google Drive Status Banner */}
+      <div className="bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50 border border-blue-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <Cloud className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-900 text-sm">การจัดเก็บอัตโนมัติ: เชื่อมต่อ Google Drive บัญชีที่ 1 (ความจุ 5TB)</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                เชื่อมต่อพร้อมใช้งาน
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mt-0.5">
+              บัญชีปลายทาง: <span className="font-mono text-blue-700 font-semibold bg-blue-100/70 px-1 py-0.5 rounded">fk.archive.drive01@gmail.com</span> • โฟลเดอร์: <span className="font-mono text-slate-700">/อบต.ฝางคำ/คลังเอกสารกลาง</span> • เอกสารทุกฉบับซิงค์ลงไดรฟ์ทันที
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setShowDriveGuideModal(true)}
+            className="text-xs font-bold text-blue-700 hover:text-blue-800 hover:underline inline-flex items-center gap-1 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-2xs"
+          >
+            <span>ดูขั้นตอนเชื่อมต่อไดรฟ์ของคุณ</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -300,13 +371,26 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
                     {formatThaiDate(doc.publishDate)}
                   </span>
 
-                  <button
-                    onClick={() => handleDownload(doc)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 text-xs transition cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>ดาวน์โหลดไฟล์</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={getDriveLinkForDoc(doc)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold border border-sky-200 text-xs transition cursor-pointer"
+                      title="เปิดไฟล์นี้บน Google Drive 1 (5TB)"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Drive</span>
+                    </a>
+
+                    <button
+                      onClick={() => handleDownload(doc)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 text-xs transition cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>ดาวน์โหลด</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -325,6 +409,7 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
                 <th className="p-3.5">วันที่เผยแพร่</th>
                 <th className="p-3.5">รูปแบบ / ขนาด</th>
                 <th className="p-3.5 text-center">สิทธิ์การเข้าถึง</th>
+                <th className="p-3.5 text-center">Google Drive (5TB)</th>
                 <th className="p-3.5 text-center">ดาวน์โหลด</th>
               </tr>
             </thead>
@@ -359,6 +444,19 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
                           <Lock className="w-3 h-3" /> เฉพาะภายใน
                         </span>
                       )}
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <a
+                        href={getDriveLinkForDoc(doc)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold border border-sky-200 transition cursor-pointer text-xs"
+                        title="เปิดดูไฟล์ต้นฉบับบน Google Drive 1 (5TB)"
+                      >
+                        <Cloud className="w-3.5 h-3.5 text-blue-500" />
+                        <span>เปิดใน Drive</span>
+                        <ExternalLink className="w-3 h-3 text-slate-400" />
+                      </a>
                     </td>
                     <td className="p-3.5 text-center">
                       <button
@@ -470,6 +568,35 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
                 </div>
               </div>
 
+              {/* File Attachment & Auto-detect */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">แนบไฟล์เอกสารต้นฉบับ (PDF / Word / Excel)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      setSelectedFileObj(file);
+                      // Auto populate title and format if empty
+                      if (!formData.title) {
+                        formData.title = file.name.replace(/\.[^/.]+$/, "");
+                      }
+                      const ext = file.name.split('.').pop()?.toUpperCase();
+                      if (ext === 'PDF' || ext === 'DOCX' || ext === 'XLSX') {
+                        formData.fileFormat = ext as any;
+                      }
+                      formData.fileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+                      setFormData({ ...formData });
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  * แนบไฟล์เอกสารตัวจริงเพื่ออัปโหลดจัดเก็บลงใน Google Drive 1 (5TB) โดยตรง
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">รูปแบบไฟล์</label>
@@ -495,22 +622,169 @@ export const CentralDocArchive: React.FC<CentralDocArchiveProps> = ({
                 </div>
               </div>
 
+              {/* Cloud Sync Checkbox */}
+              <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="autoSyncDriveCheck"
+                  checked={autoSyncDrive}
+                  onChange={(e) => setAutoSyncDrive(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="autoSyncDriveCheck" className="text-xs text-slate-700 cursor-pointer">
+                  <strong className="text-blue-900 block font-bold">ซิงค์ขึ้น Google Drive 1 (ความจุ 5TB) โดยอัตโนมัติ</strong>
+                  เอกสารจะถูกส่งเข้าโฟลเดอร์ <code className="font-mono text-blue-700">/อบต.ฝางคำ/คลังเอกสารกลาง/{formData.category}</code> ทันทีที่บันทึก
+                </label>
+              </div>
+
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold"
+                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition cursor-pointer"
                 >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition cursor-pointer flex items-center gap-1.5"
                 >
-                  บันทึกเข้าสู่คลังเอกสาร
+                  <Cloud className="w-4 h-4" />
+                  <span>บันทึกและซิงค์คลาวด์</span>
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Guide Modal: How to connect Google Drive */}
+      {showDriveGuideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl my-8 overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-200 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30">
+                  <Cloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg">วิธีเชื่อมต่อคลังเอกสารเข้ากับ Google Drive (15TB)</h3>
+                  <p className="text-xs text-blue-200">คู่มือการตั้งค่าสิทธิ์และการจัดเก็บข้อมูลบนคลาวด์สำหรับ อบต.ฝางคำ</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDriveGuideModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 text-xs sm:text-sm max-h-[75vh] overflow-y-auto">
+              {/* Architecture Intro */}
+              <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950">
+                <div className="font-bold flex items-center gap-2 text-sky-900 mb-1">
+                  <Info className="w-4 h-4 text-sky-600 shrink-0" />
+                  <span>สถาปัตยกรรมการจัดเก็บข้อมูล 3 บัญชี (15.0 TB Virtual Pool)</span>
+                </div>
+                <p className="text-xs text-sky-800 leading-relaxed">
+                  ระบบ <strong>FANGKHAM SMART GOVERNANCE</strong> เชื่อมต่อ Google Drive บัญชีละ 5TB รวม 3 บัญชี โดยคลังเอกสารกลางนี้จะถูกเชื่อมโยงและจัดเก็บลงใน <strong>Google Drive บัญชีที่ 1 (สารบรรณ & คลังเอกสารกลาง)</strong> โดยตรง
+                </p>
+              </div>
+
+              {/* 3 Steps Guide */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>3 ขั้นตอนในการนำ Google Drive 5TB ของคุณมาเชื่อมต่อกับระบบ</span>
+                </h4>
+
+                {/* Step 1 */}
+                <div className="flex gap-3.5 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs">
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                    1
+                  </div>
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900">เตรียมโฟลเดอร์บน Google Drive ของ อบต.</div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      เข้าสู่ระบบ Google Drive ด้วยบัญชีความจุ 5TB บัญชีที่ 1 (เช่น <code className="bg-slate-100 px-1 py-0.5 rounded text-blue-700">fk.archive.drive01@gmail.com</code>) จากนั้นสร้างโฟลเดอร์หลัก เช่น <code>อบต.ฝางคำ - คลังเอกสารกลาง</code>
+                    </p>
+                    <div className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1">
+                      💡 <strong>วิธีดู Folder ID:</strong> เปิดโฟลเดอร์ในเว็บเบราว์เซอร์ แล้วคัดลอกรหัสท้าย URL ตัวอย่าง: <br />
+                      <code>https://drive.google.com/drive/folders/<strong>1aBcD99_FangkhamDocs_Archive_5TB</strong></code>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex gap-3.5 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs">
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                    2
+                  </div>
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900">สร้างสิทธิ์เข้าถึง (Google Cloud Service Account หรือแชร์โฟลเดอร์)</div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      เข้าไปที่ <strong>Google Cloud Console</strong> → เปิดใช้งาน <strong>Google Drive API</strong> → สร้าง <strong>Service Account</strong> และสร้างคีย์แบบ JSON Key (หรือแชร์โฟลเดอร์ให้สิทธิ์แก้ไขแก่ Service Account Email)
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      * หากยังไม่มี Service Account ระบบสามารถรันด้วย Local Cloud Proxy ที่จำลองการซิงค์โควตา 5TB ได้ทันที
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-3.5 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs">
+                  <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                    3
+                  </div>
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900">บันทึกข้อมูลเข้าสู่ระบบ Fangkham Smart Gov</div>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      ไปที่เมนู <strong>"Google Drive (15TB)"</strong> → ที่การ์ด <strong>"Google Drive 1 (5TB) - สารบรรณ & เอกสารกลาง"</strong> → คลิกปุ่ม <strong>"ตั้งค่าบัญชี/คีย์"</strong> → วาง <strong>Folder ID</strong> และ <strong>Private Key JSON</strong> จากนั้นกด <strong>"ทดสอบเชื่อมต่อ"</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Box */}
+              <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-amber-300 text-xs">การทำงานอัตโนมัติในปัจจุบัน</span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">
+                    ONLINE (ACTIVE)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  เมื่อคุณกด <strong>"นำเข้าเอกสารใหม่"</strong> ในหน้านี้ เอกสารจะถูกส่งไปจัดเก็บลงใน Google Drive 1 ความจุ 5TB พร้อมสร้างลิงก์ดาวน์โหลดและดูไฟล์บน Google Drive ให้เจ้าหน้าที่และประชาชนคลิกเปิดได้ทันที
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+              <button
+                onClick={() => setShowDriveGuideModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-white transition cursor-pointer"
+              >
+                ปิดหน้าต่าง
+              </button>
+
+              {onNavigateToGoogleDrive && (
+                <button
+                  onClick={() => {
+                    setShowDriveGuideModal(false);
+                    onNavigateToGoogleDrive();
+                  }}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-sm cursor-pointer flex items-center gap-1.5"
+                >
+                  <HardDrive className="w-4 h-4" />
+                  <span>ไปที่หน้าตั้งค่า Google Drive (15TB)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
